@@ -1,12 +1,17 @@
 #pragma once
 #include "common.h"
 
+#define NAMED_PIPE_NAME L"\\\\.\\pipe\\TOYEDR_COMM"
+#define NAMED_PIPE_BUFSIZE MAXDWORD
+
 extern DWORD wSystemCall;
 extern NTSTATUS CallSyscall();
 
 typedef struct _SSN_STRUCT {
 
     WORD wNtCreateUserProcess;
+    WORD wNtCreateProcess;
+    WORD wNtCreateProcessEx;
     WORD wNtAllocateVirtualMemory;
     WORD wNtAllocateVirtualMemoryEx;
 
@@ -245,6 +250,33 @@ NtCreateUserProcess_hook(
     _In_opt_ PVOID ProcessParameters, // PRTL_USER_PROCESS_PARAMETERS
     _Inout_ PPS_CREATE_INFO CreateInfo,
     _In_opt_ PPS_ATTRIBUTE_LIST AttributeList
+);
+
+NTSTATUS
+NTAPI
+NtCreateProcess_hook(
+    _Out_ PHANDLE ProcessHandle,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+    _In_ HANDLE ParentProcess,
+    _In_ BOOLEAN InheritObjectTable,
+    _In_opt_ HANDLE SectionHandle,
+    _In_opt_ HANDLE DebugPort,
+    _In_opt_ HANDLE TokenHandle
+);
+
+NTSTATUS
+NTAPI
+NtCreateProcessEx_hook(
+    _Out_ PHANDLE ProcessHandle,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+    _In_ HANDLE ParentProcess,
+    _In_ ULONG Flags, // PROCESS_CREATE_FLAGS_*
+    _In_opt_ HANDLE SectionHandle,
+    _In_opt_ HANDLE DebugPort,
+    _In_opt_ HANDLE TokenHandle,
+    _Reserved_ ULONG Reserved // JobMemberLevel
 );
 
 NTSTATUS

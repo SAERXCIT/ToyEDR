@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 	printf("[*] Press enter to create a new process...");
 	getchar();
 
-	if (!CreateProcessA(NULL, "calc.exe", NULL, NULL, 0, 0, NULL, NULL, &Si, &Pi)) {
+	if (!CreateProcessA(NULL, "notepad.exe", NULL, NULL, 0, 0, NULL, NULL, &Si, &Pi)) {
 		printf("[-] Error creating a new process: %d\n", GetLastError());
 		return -1;
 	}

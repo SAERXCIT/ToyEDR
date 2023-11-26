@@ -36,6 +36,8 @@ BOOL InstallHook(PNTAPI_HOOK psctFunctionHook) {
 BOOL InstallAllHooks(NTAPI_HOOKS sctFunctionHooks) {
 
 	InstallHook(&(sctFunctionHooks.sctNtapiHook_NtCreateUserProcess));
+	InstallHook(&(sctFunctionHooks.sctNtapiHook_NtCreateProcess));
+	InstallHook(&(sctFunctionHooks.sctNtapiHook_NtCreateProcessEx));
 	InstallHook(&(sctFunctionHooks.sctNtapiHook_NtAllocateVirtualMemory));
 	InstallHook(&(sctFunctionHooks.sctNtapiHook_NtAllocateVirtualMemoryEx));
 
@@ -75,6 +77,22 @@ BOOL BuildHooksStruct(PNTAPI_HOOKS psctFunctionHooks) {
 	}
 	sctSSN.wNtCreateUserProcess = sctNtapiHook_NtCreateUserProcess.wSSN;
 	sctTempFunctionHooks.sctNtapiHook_NtCreateUserProcess = sctNtapiHook_NtCreateUserProcess;
+
+
+	NTAPI_HOOK sctNtapiHook_NtCreateProcess = { 0 };
+	if (!InitializeHookStruct(&sctNtapiHook_NtCreateProcess, "NtCreateProcess", &NtCreateProcess_hook)) {
+		printf("[-] Error initializing NtCreateProcess hook\n");
+	}
+	sctSSN.wNtCreateProcess = sctNtapiHook_NtCreateProcess.wSSN;
+	sctTempFunctionHooks.sctNtapiHook_NtCreateProcess = sctNtapiHook_NtCreateProcess;
+
+
+	NTAPI_HOOK sctNtapiHook_NtCreateProcessEx = { 0 };
+	if (!InitializeHookStruct(&sctNtapiHook_NtCreateProcessEx, "NtCreateProcessEx", &NtCreateProcessEx_hook)) {
+		printf("[-] Error initializing NtCreateProcessEx hook\n");
+	}
+	sctSSN.wNtCreateProcessEx = sctNtapiHook_NtCreateProcessEx.wSSN;
+	sctTempFunctionHooks.sctNtapiHook_NtCreateProcessEx = sctNtapiHook_NtCreateProcessEx;
 
 
 	NTAPI_HOOK sctNtapiHook_NtAllocateVirtualMemory = { 0 };

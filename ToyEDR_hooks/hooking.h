@@ -24,6 +24,8 @@ typedef struct _NTAPI_HOOK {
 typedef struct _NTAPI_HOOKS {
 	
 	NTAPI_HOOK sctNtapiHook_NtCreateUserProcess;
+	NTAPI_HOOK sctNtapiHook_NtCreateProcess;
+	NTAPI_HOOK sctNtapiHook_NtCreateProcessEx;
 	NTAPI_HOOK sctNtapiHook_NtAllocateVirtualMemory;
 	NTAPI_HOOK sctNtapiHook_NtAllocateVirtualMemoryEx;
 
