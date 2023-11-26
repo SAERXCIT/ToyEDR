@@ -1,5 +1,6 @@
 #include "hooking.h"
 
+
 BOOL InstallHook(PNTAPI_HOOK psctFunctionHook) {
 
 	DWORD dwOldProtect = 0;
@@ -33,13 +34,13 @@ BOOL InstallHook(PNTAPI_HOOK psctFunctionHook) {
 
 }
 
-BOOL InstallAllHooks(NTAPI_HOOKS sctFunctionHooks) {
+BOOL InstallAllHooks() {
 
-	InstallHook(&(sctFunctionHooks.sctNtapiHook_NtCreateUserProcess));
-	InstallHook(&(sctFunctionHooks.sctNtapiHook_NtCreateProcess));
-	InstallHook(&(sctFunctionHooks.sctNtapiHook_NtCreateProcessEx));
-	InstallHook(&(sctFunctionHooks.sctNtapiHook_NtAllocateVirtualMemory));
-	InstallHook(&(sctFunctionHooks.sctNtapiHook_NtAllocateVirtualMemoryEx));
+	InstallHook(&(sctNtapiHooks.sctNtapiHook_NtCreateUserProcess));
+	InstallHook(&(sctNtapiHooks.sctNtapiHook_NtCreateProcess));
+	InstallHook(&(sctNtapiHooks.sctNtapiHook_NtCreateProcessEx));
+	InstallHook(&(sctNtapiHooks.sctNtapiHook_NtAllocateVirtualMemory));
+	InstallHook(&(sctNtapiHooks.sctNtapiHook_NtAllocateVirtualMemoryEx));
 
 	return TRUE;
 
@@ -67,16 +68,14 @@ BOOL InitializeHookStruct(PNTAPI_HOOK psctFunctionHook, LPCSTR szProcName, PVOID
 
 }
 
-BOOL BuildHooksStruct(PNTAPI_HOOKS psctFunctionHooks) {
-
-	NTAPI_HOOKS sctTempFunctionHooks = { 0 };
+BOOL BuildHooksStruct() {
 
 	NTAPI_HOOK sctNtapiHook_NtCreateUserProcess = { 0 };
 	if (!InitializeHookStruct(&sctNtapiHook_NtCreateUserProcess, "NtCreateUserProcess", &NtCreateUserProcess_hook)) {
 		printf("[-] Error initializing NtCreateUserProcess hook\n");
 	}
 	sctSSN.wNtCreateUserProcess = sctNtapiHook_NtCreateUserProcess.wSSN;
-	sctTempFunctionHooks.sctNtapiHook_NtCreateUserProcess = sctNtapiHook_NtCreateUserProcess;
+	sctNtapiHooks.sctNtapiHook_NtCreateUserProcess = sctNtapiHook_NtCreateUserProcess;
 
 
 	NTAPI_HOOK sctNtapiHook_NtCreateProcess = { 0 };
@@ -84,7 +83,7 @@ BOOL BuildHooksStruct(PNTAPI_HOOKS psctFunctionHooks) {
 		printf("[-] Error initializing NtCreateProcess hook\n");
 	}
 	sctSSN.wNtCreateProcess = sctNtapiHook_NtCreateProcess.wSSN;
-	sctTempFunctionHooks.sctNtapiHook_NtCreateProcess = sctNtapiHook_NtCreateProcess;
+	sctNtapiHooks.sctNtapiHook_NtCreateProcess = sctNtapiHook_NtCreateProcess;
 
 
 	NTAPI_HOOK sctNtapiHook_NtCreateProcessEx = { 0 };
@@ -92,7 +91,7 @@ BOOL BuildHooksStruct(PNTAPI_HOOKS psctFunctionHooks) {
 		printf("[-] Error initializing NtCreateProcessEx hook\n");
 	}
 	sctSSN.wNtCreateProcessEx = sctNtapiHook_NtCreateProcessEx.wSSN;
-	sctTempFunctionHooks.sctNtapiHook_NtCreateProcessEx = sctNtapiHook_NtCreateProcessEx;
+	sctNtapiHooks.sctNtapiHook_NtCreateProcessEx = sctNtapiHook_NtCreateProcessEx;
 
 
 	NTAPI_HOOK sctNtapiHook_NtAllocateVirtualMemory = { 0 };
@@ -100,7 +99,7 @@ BOOL BuildHooksStruct(PNTAPI_HOOKS psctFunctionHooks) {
 		printf("[-] Error initializing NtAllocateVirtualMemory hook\n");
 	}
 	sctSSN.wNtAllocateVirtualMemory = sctNtapiHook_NtAllocateVirtualMemory.wSSN;
-	sctTempFunctionHooks.sctNtapiHook_NtAllocateVirtualMemory = sctNtapiHook_NtAllocateVirtualMemory;
+	sctNtapiHooks.sctNtapiHook_NtAllocateVirtualMemory = sctNtapiHook_NtAllocateVirtualMemory;
 
 
 	NTAPI_HOOK sctNtapiHook_NtAllocateVirtualMemoryEx = { 0 };
@@ -108,10 +107,38 @@ BOOL BuildHooksStruct(PNTAPI_HOOKS psctFunctionHooks) {
 		printf("[-] Error initializing NtAllocateVirtualMemoryEx hook\n");
 	}
 	sctSSN.wNtAllocateVirtualMemoryEx = sctNtapiHook_NtAllocateVirtualMemoryEx.wSSN;
-	sctTempFunctionHooks.sctNtapiHook_NtAllocateVirtualMemoryEx = sctNtapiHook_NtAllocateVirtualMemoryEx;
+	sctNtapiHooks.sctNtapiHook_NtAllocateVirtualMemoryEx = sctNtapiHook_NtAllocateVirtualMemoryEx;
 
-	*psctFunctionHooks = sctTempFunctionHooks;
+	return TRUE;
+
+}
+
+BOOL UninstallHook(PNTAPI_HOOK psctFunctionHook) {
 	
+	DWORD dwOldProtect = 0;
+
+	if (!VirtualProtect(psctFunctionHook->pOriginalFunctionAddress, TRAMPOLINE_SIZE, PAGE_EXECUTE_READWRITE, &dwOldProtect)) {
+		printf("[-] Cannot change page protection to PAGE_EXECUTE_READWRITE: %d\n", GetLastError());
+		return FALSE;
+	}
+
+	memcpy(psctFunctionHook->pOriginalFunctionAddress, psctFunctionHook->uOriginalBytes, TRAMPOLINE_SIZE);
+	psctFunctionHook->bHookInstalled = FALSE;
+
+	VirtualProtect(psctFunctionHook->pOriginalFunctionAddress, TRAMPOLINE_SIZE, psctFunctionHook->dwOldProtection, &dwOldProtect);
+
+	return TRUE;
+
+}
+
+BOOL Cleanup() {
+
+	UninstallHook(&(sctNtapiHooks.sctNtapiHook_NtCreateUserProcess));
+	UninstallHook(&(sctNtapiHooks.sctNtapiHook_NtCreateProcess));
+	UninstallHook(&(sctNtapiHooks.sctNtapiHook_NtCreateProcessEx));
+	UninstallHook(&(sctNtapiHooks.sctNtapiHook_NtAllocateVirtualMemory));
+	UninstallHook(&(sctNtapiHooks.sctNtapiHook_NtAllocateVirtualMemoryEx));
+
 	return TRUE;
 
 }

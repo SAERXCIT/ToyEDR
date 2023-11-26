@@ -31,5 +31,8 @@ typedef struct _NTAPI_HOOKS {
 
 } NTAPI_HOOKS, * PNTAPI_HOOKS;
 
-BOOL BuildHooksStruct(PNTAPI_HOOKS psctFunctionHooks);
-BOOL InstallAllHooks(NTAPI_HOOKS sctFunctionHooks);
+NTAPI_HOOKS sctNtapiHooks;
+
+BOOL BuildHooksStruct();
+BOOL InstallAllHooks();
+BOOL Cleanup();

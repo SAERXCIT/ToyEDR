@@ -183,8 +183,8 @@ NtAllocateVirtualMemory_hook(
     // OutputDebugStringA("[*] Entering NtAllocateVirtualMemory\n");
 
     if (Protect == PAGE_EXECUTE_READWRITE) {
-        OutputDebugStringA("[!] RWX page detected! Terminating process...\n");
-        ExitProcess(-1);
+        OutputDebugStringA("[!] RWX page detected!\n");
+        //ExitProcess(-1);
     }
 
     wSystemCall = sctSSN.wNtAllocateVirtualMemory;
